@@ -1,3 +1,4 @@
+import com.jakewharton.rxrelay3.PublishRelay
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.subscribeBy
 import io.reactivex.rxjava3.subjects.AsyncSubject
@@ -175,4 +176,31 @@ fun main(){
       subscriptions.dispose()
     }
   }
+
+  exampleOf("RxRelay"){
+    val subscriptions = CompositeDisposable()
+
+    val publishRelay = PublishRelay.create<Int>()
+
+    subscriptions.add(publishRelay.subscribeBy(
+      onNext = { printWithLabel("1)", it) }
+    ))
+
+    publishRelay.accept(1)
+    publishRelay.accept(2)
+    publishRelay.accept(3)
+  }
+
+  /*Key Point
+  * * Subject adalah observable yang juga observer
+  * * nilai dapat di kirim ke subject melalui onNext, onComplete, dan on Error
+  * * "PublishSubject" di gunakan ketika hanya menginginkan untuk menerima nilai
+  *   yang muncul setelah melakukan subscribe
+  * * "BehaviorSubject" akan menyampaikan event terakhir yang muncul ketika melakukan subscribe
+  *   termasuk niali opsional
+  * * "ReplaySubject" nilai yang di konfigura akan di simpan di buffer yang akan di tampilkan ke
+  *   subscriber baru. untuk menggunakan in harus berhati hati dalam menentukan besaran buffer
+  * * "AsyncSubject" hanya mensubscribe nilai terakhir yang detirma seblum onCOmplete di jalankan
+  * * ""RxRelay" di gunakan untuk mensubscribe nilai yang akan rerus muncul, sehingga menghindarkan
+  *   dari onComplete dan onError, agar data terus berjalan*/
 }
