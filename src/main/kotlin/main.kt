@@ -1,5 +1,6 @@
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.subscribeBy
+import io.reactivex.rxjava3.subjects.AsyncSubject
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 import io.reactivex.rxjava3.subjects.PublishSubject
 import io.reactivex.rxjava3.subjects.ReplaySubject
@@ -149,6 +150,29 @@ fun main(){
       * karena mereka sudah subscribe keitka elemant baru ditambahkan,
       * sementara itu subscriber baru yang ke tiga hanya akan mendapatkan 2 element terbaru
       * */
+    }
+
+    exampleOf("AsyncSubject"){
+      val subscriptions = CompositeDisposable()
+
+      //1. membuat asyncSubject yang menampung nilai int
+      val asyncSubject = AsyncSubject.create<Int>()
+
+      //2. Subscribe ke subject, print kedua hasil baik onComplete atau onNext
+      subscriptions.add(asyncSubject.subscribeBy(
+        onNext = {printWithLabel("1)", it)},
+        onComplete = {printWithLabel("1)", "complete")}
+      ))
+
+      //3. mengirim 3 nilai ke dalam subject
+      asyncSubject.onNext(0)
+      asyncSubject.onNext(1)
+      asyncSubject.onNext(2)
+
+      //4. subject complete
+      asyncSubject.onComplete()
+      /*karena 2 adalah element terakhir maka hanya 2 yang di tampilkan*/
+      subscriptions.dispose()
     }
   }
 }
