@@ -2,6 +2,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.subscribeBy
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 import io.reactivex.rxjava3.subjects.PublishSubject
+import io.reactivex.rxjava3.subjects.ReplaySubject
 import java.lang.RuntimeException
 
 fun main(){
@@ -99,5 +100,55 @@ fun main(){
     subscription.dispose()
     //behavior subject dapat membantu menjebatani antara dunia rx dan dunia non rx
 
+    exampleOf("replaySubject"){
+
+      val subscriptions = CompositeDisposable()
+
+      //1. mencipatakan replaySubject dengan array buffer 2.
+      //replay subject di inisialisasi dengan method static 'createWithSize'.
+      val replaySubject = ReplaySubject.createWithSize<String>(2)
+
+      //2. menambhkan tiga element kedalam subject
+      replaySubject.onNext("1")
+
+      replaySubject.onNext("2")
+
+      replaySubject.onNext("3")
+
+      //3. menciptakan 2 subscription ke subject
+      subscriptions.add(replaySubject.subscribeBy(
+        onNext = {printWithLabel("1)", it)},
+        onError = {printWithLabel("1)", it)}
+      ))
+
+      subscriptions.add(replaySubject.subscribeBy(
+        onNext = {printWithLabel("2)", it)},
+        onError = {printWithLabel("2)", it)}
+      ))
+    /*
+    * dua element terakhir di masukkan ke dalam subcription. 1 tidak pernah di tampilkan
+    * karena 2 dan 3 telah di masukkan kedlam subcription sedangkan ukuran dari buffer hanya ada 2
+    * jadi 1 di hilangkan
+    * */
+
+      replaySubject.onNext("4")
+      replaySubject.onError(RuntimeException("error"))
+      /*
+      * replay subject di akhiri dengan error, yang mana itu akan menampilkan kembali
+      * ke subscriber baru seperti yang telah di lakukan subject. tetepi buffer masih
+      * berkeliaran, jadi itu akan tetap di replay selama itu belum di hentikan
+      * */
+
+      subscriptions.add(replaySubject.subscribeBy(
+        onNext = {printWithLabel("3)", it)},
+        onError = {printWithLabel("3)", it)}
+      ))
+
+      /*
+      * 2 subscription pertama akan menerima elemant secara normal
+      * karena mereka sudah subscribe keitka elemant baru ditambahkan,
+      * sementara itu subscriber baru yang ke tiga hanya akan mendapatkan 2 element terbaru
+      * */
+    }
   }
 }
